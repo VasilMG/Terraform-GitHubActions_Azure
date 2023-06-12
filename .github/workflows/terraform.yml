@@ -1,5 +1,5 @@
 
-name: 'Terraform test'
+name: 'Terraform'
 
 on:
   push:
@@ -7,10 +7,16 @@ on:
 
 permissions:
   contents: read
+  
+env:
+  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
 
 jobs:
   terraform:
-    name: 'Terraform test'
+    name: 'Terraform'
     runs-on: ubuntu-latest
     environment: production
 
@@ -28,18 +34,21 @@ jobs:
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
       with:
-        terraform_version: 1.4.6
+        terraform_version: 1.1.7
 
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
       run: terraform init
-
-    # Checks that all Terraform configuration files adhere to a canonical format
-    - name: Terraform Format
-      run: terraform fmt -check -recursive
       
-    # Validates the files
-    - name: Terraform Validate
-      run: terraform validate
+    # Loing to Azure
+    - name: Login via Azure CLI
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    # Terraform apply
+    - name: Terraform apply
+      run: terraform apply -auto-approve
+      
 
  
